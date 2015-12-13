@@ -56,8 +56,6 @@ public class MainActivity extends AppCompatActivity {
                 Log.d(TAG, "[subscribe] c.getCount() " + c.getCount());
                 // TODO parse data...
                 while (c.moveToNext()) {
-                //for (boolean hasItem = c.moveToFirst(); hasItem; hasItem = c.moveToNext()) {
-                    // use cursor to work with current item
                     String name = c.getString(cache.getColumnIndex(c, SQLiteGovHelper.COLUMN_NAME));
                     String twitterid = c.getString(cache.getColumnIndex(c, SQLiteGovHelper.COLUMN_TWITTERID));
                     //Log.d(TAG, " " + name + ", @" + twitterid);
@@ -74,9 +72,10 @@ public class MainActivity extends AppCompatActivity {
         // write some data
         final int deletedRows = mDB.delete(mTable, "1", null);
         Log.d(TAG, "[onResume] deletedRows: " + deletedRows);
-        mDB.insert(mTable, createUser("Android", "Android"));
-        mDB.insert(mTable, createUser("Android Developers", "AndroidDev"));
-        mDB.insert(mTable, createUser("Google", "google"));
+        //mDB.insert(mTable, createUser("Android", "Android"));
+        //mDB.insert(mTable, createUser("Android Developers", "AndroidDev"));
+        //mDB.insert(mTable, createUser("Google", "google"));
+        createUserTransaction();
     }
 
     public ContentValues createUser(String name, String twitterid) {
@@ -84,6 +83,18 @@ public class MainActivity extends AppCompatActivity {
         cv.put(SQLiteGovHelper.COLUMN_NAME, name);
         cv.put(SQLiteGovHelper.COLUMN_TWITTERID, twitterid);
         return cv;
+    }
+
+    public void createUserTransaction() {
+        BriteDatabase.Transaction transaction = mDB.newTransaction();
+        try {
+            mDB.insert(mTable, createUser("Android", "Android"));
+            mDB.insert(mTable, createUser("Android Developers", "AndroidDev"));
+            mDB.insert(mTable, createUser("Google", "google"));
+            transaction.markSuccessful();
+        } finally {
+            transaction.end();
+        }
     }
 
     @Override
