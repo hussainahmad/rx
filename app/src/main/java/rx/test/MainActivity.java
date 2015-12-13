@@ -1,23 +1,32 @@
 package rx.test;
 
-import android.database.sqlite.SQLiteOpenHelper;
+import android.content.ContentValues;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.view.View;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 
 import com.squareup.sqlbrite.BriteDatabase;
 import com.squareup.sqlbrite.SqlBrite;
 
+import rx.Observable;
+import rx.functions.Action1;
+
 public class MainActivity extends AppCompatActivity {
+    private final String TAG = getClass().getSimpleName();
+    private final String mTable = SQLiteGovHelper.TABLE_GOV_MEMBERS;
+    private BriteDatabase mDB;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.d(TAG, "[onCreate]");
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -31,11 +40,50 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        // test rx
+        // test sqlBrite
         SqlBrite sqlBrite = SqlBrite.create();
+        // http://www.vogella.com/tutorials/AndroidSQLite/article.html
         SQLiteGovHelper openHelper = new SQLiteGovHelper(this);
-        BriteDatabase db = sqlBrite.wrapDatabaseHelper(openHelper);
+        mDB = sqlBrite.wrapDatabaseHelper(openHelper);
 
+        // now read some data
+        Observable<SqlBrite.Query> members = mDB.createQuery(mTable, "SELECT * FROM " + mTable);
+        members.subscribe(new Action1<SqlBrite.Query>() {
+            @Override
+            public void call(SqlBrite.Query query) {
+                final ColumnIndexCache cache = new ColumnIndexCache();
+                Cursor c = query.run();
+                Log.d(TAG, "[subscribe] c.getCount() " + c.getCount());
+                // TODO parse data...
+                while (c.moveToNext()) {
+                //for (boolean hasItem = c.moveToFirst(); hasItem; hasItem = c.moveToNext()) {
+                    // use cursor to work with current item
+                    String name = c.getString(cache.getColumnIndex(c, SQLiteGovHelper.COLUMN_NAME));
+                    String twitterid = c.getString(cache.getColumnIndex(c, SQLiteGovHelper.COLUMN_TWITTERID));
+                    //Log.d(TAG, " " + name + ", @" + twitterid);
+                }
+            }
+        });
+    }
+
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Log.d(TAG, "[onResume]");
+        // write some data
+        final int deletedRows = mDB.delete(mTable, "1", null);
+        Log.d(TAG, "[onResume] deletedRows: " + deletedRows);
+        mDB.insert(mTable, createUser("Android", "Android"));
+        mDB.insert(mTable, createUser("Android Developers", "AndroidDev"));
+        mDB.insert(mTable, createUser("Google", "google"));
+    }
+
+    public ContentValues createUser(String name, String twitterid) {
+        ContentValues cv = new ContentValues();
+        cv.put(SQLiteGovHelper.COLUMN_NAME, name);
+        cv.put(SQLiteGovHelper.COLUMN_TWITTERID, twitterid);
+        return cv;
     }
 
     @Override
