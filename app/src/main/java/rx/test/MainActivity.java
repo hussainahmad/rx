@@ -1,5 +1,6 @@
 package rx.test;
 
+import android.database.sqlite.SQLiteOpenHelper;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -8,6 +9,9 @@ import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+
+import com.squareup.sqlbrite.BriteDatabase;
+import com.squareup.sqlbrite.SqlBrite;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -28,8 +32,9 @@ public class MainActivity extends AppCompatActivity {
         });
 
         // test rx
-        
-
+        SqlBrite sqlBrite = SqlBrite.create();
+        SQLiteOpenHelper so = new SQLiteOpenHelper();
+        BriteDatabase db = sqlBrite.wrapDatabaseHelper(so);
     }
 
     @Override
