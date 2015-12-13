@@ -33,8 +33,9 @@ public class MainActivity extends AppCompatActivity {
 
         // test rx
         SqlBrite sqlBrite = SqlBrite.create();
-        SQLiteOpenHelper so = new SQLiteOpenHelper();
-        BriteDatabase db = sqlBrite.wrapDatabaseHelper(so);
+        SQLiteGovHelper openHelper = new SQLiteGovHelper(this);
+        BriteDatabase db = sqlBrite.wrapDatabaseHelper(openHelper);
+
     }
 
     @Override
