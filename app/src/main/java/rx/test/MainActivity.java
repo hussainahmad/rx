@@ -12,9 +12,16 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
+import com.squareup.okhttp.OkHttpClient;
 import com.squareup.sqlbrite.BriteDatabase;
 import com.squareup.sqlbrite.SqlBrite;
 
+import retrofit.Call;
+import retrofit.Callback;
+import retrofit.GsonConverterFactory;
+import retrofit.Response;
+import retrofit.Retrofit;
+import retrofit.http.GET;
 import rx.Observable;
 import rx.functions.Action1;
 
@@ -40,18 +47,82 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        // test sqlBrite
-        SqlBrite sqlBrite = SqlBrite.create();
+        //testSqlBrite();
+        testRetrofit();
+    }
+
+    private void testRetrofit() {
+        // http://square.github.io/retrofit, documentation
+        OkHttpClient client = new OkHttpClient();
+        //client.interceptors().add();
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl("http://goanuj.freeshell.org")
+                .client(client)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+        GovService service = retrofit.create(GovService.class);
+
+        // do a HTTP:GET, observe result and print it out
+        Log.d(TAG, " call before: "  + System.currentTimeMillis());
+        Call<MyTest> call = service.getMyTest();
+        Log.d(TAG, " call after: "  + System.currentTimeMillis());
+
+        call.enqueue(new Callback<MyTest>() {
+            @Override
+            public void onResponse(Response<MyTest> response, Retrofit retrofit) {
+                int statusCode = response.code();
+                MyTest t = response.body();
+                Log.d(TAG, " code: "  + statusCode);
+                Log.d(TAG, " body: "  + t.toString());
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                Log.d(TAG, " error: " + t.getMessage());
+            }
+        });
+        // save it to database
+    }
+
+    public class GovMember {
+        private String name;
+        private String twitterId;
+    }
+
+    public class MyTest {
+        private String name;
+        public String getName() { return name; }
+        public void setName(String name) { this.name = name; }
+
+        public String toString() {
+            return "Name: " + this.name;
+        }
+    }
+
+    public interface GovService {
+        @GET("/txt2lrn/sat/index_1.json")
+        Call<MyTest> getMyTest();
+
+        @GET("/txt2lrn/sat/index_1.json")
+        Observable<MyTest> getMyTestObservable();
+
+        //@GET("/gists/{id}")
+        //Observable<GistDetail> gist(@Path("id") String id);
+    }
+
+
+
+    private void testSqlBrite() {
+        SqlBrite sqlBrite = SqlBrite.create();  // should probably move to Application
         // http://www.vogella.com/tutorials/AndroidSQLite/article.html
         SQLiteGovHelper openHelper = new SQLiteGovHelper(this);
         mDB = sqlBrite.wrapDatabaseHelper(openHelper);
-
         // now read some data
+        final ColumnIndexCache cache = new ColumnIndexCache();
         Observable<SqlBrite.Query> members = mDB.createQuery(mTable, "SELECT * FROM " + mTable);
         members.subscribe(new Action1<SqlBrite.Query>() {
             @Override
             public void call(SqlBrite.Query query) {
-                final ColumnIndexCache cache = new ColumnIndexCache();
                 Cursor c = query.run();
                 Log.d(TAG, "[subscribe] c.getCount() " + c.getCount());
                 // TODO parse data...
@@ -64,18 +135,14 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-
     @Override
     protected void onResume() {
         super.onResume();
         Log.d(TAG, "[onResume]");
         // write some data
-        final int deletedRows = mDB.delete(mTable, "1", null);
-        Log.d(TAG, "[onResume] deletedRows: " + deletedRows);
-        //mDB.insert(mTable, createUser("Android", "Android"));
-        //mDB.insert(mTable, createUser("Android Developers", "AndroidDev"));
-        //mDB.insert(mTable, createUser("Google", "google"));
-        createUserTransaction();
+        //final int deletedRows = mDB.delete(mTable, "1", (String)null);
+        //Log.d(TAG, "[onResume] deletedRows: " + deletedRows);
+        //insertViaTransaction();
     }
 
     public ContentValues createUser(String name, String twitterid) {
@@ -85,7 +152,7 @@ public class MainActivity extends AppCompatActivity {
         return cv;
     }
 
-    public void createUserTransaction() {
+    public void insertViaTransaction() {
         BriteDatabase.Transaction transaction = mDB.newTransaction();
         try {
             mDB.insert(mTable, createUser("Android", "Android"));
