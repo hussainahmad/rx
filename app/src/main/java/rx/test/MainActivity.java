@@ -6,37 +6,55 @@ import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.DefaultItemAnimator;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
-import com.squareup.okhttp.OkHttpClient;
 import com.squareup.sqlbrite.BriteDatabase;
 import com.squareup.sqlbrite.SqlBrite;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import retrofit.Call;
 import retrofit.Callback;
 import retrofit.GsonConverterFactory;
 import retrofit.Response;
 import retrofit.Retrofit;
+import retrofit.RxJavaCallAdapterFactory;
 import retrofit.http.GET;
 import rx.Observable;
+import rx.Subscriber;
+import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 
 public class MainActivity extends AppCompatActivity {
     private final String TAG = getClass().getSimpleName();
     private final String mTable = SQLiteGovHelper.TABLE_GOV_MEMBERS;
     private BriteDatabase mDB;
+    private ArrayList<ModelGovMember> mGovList;
+    private AdapterGovCursor mAdapter;
+    private RecyclerView mRV;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.d(TAG, "[onCreate]");
         setContentView(R.layout.activity_main);
+
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        mRV = (RecyclerView) findViewById(R.id.rv);
+        mRV.setLayoutManager(new LinearLayoutManager(this));// setup LayoutManager
+        mRV.setItemAnimator(new DefaultItemAnimator());// setup ItemAnimator
+        mAdapter = new AdapterGovCursor(this, null);
+        mRV.setAdapter(mAdapter);
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -47,69 +65,135 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        //testSqlBrite();
-        testRetrofit();
+        // setup data for ListView
+        mGovList = new ArrayList<>();
+
+        testSqlBrite();
+        //testRetrofit();
     }
 
     private void testRetrofit() {
         // http://square.github.io/retrofit, documentation
-        OkHttpClient client = new OkHttpClient();
+        // OkHttpClient client = new OkHttpClient();
         //client.interceptors().add();
+
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl("http://goanuj.freeshell.org")
-                .client(client)
                 .addConverterFactory(GsonConverterFactory.create())
+                .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
                 .build();
         GovService service = retrofit.create(GovService.class);
 
         // do a HTTP:GET, observe result and print it out
-        Log.d(TAG, " call before: "  + System.currentTimeMillis());
-        Call<MyTest> call = service.getMyTest();
-        Log.d(TAG, " call after: "  + System.currentTimeMillis());
-
+        Call<MyTest> call = service.getOneTest();
         call.enqueue(new Callback<MyTest>() {
             @Override
             public void onResponse(Response<MyTest> response, Retrofit retrofit) {
                 int statusCode = response.code();
                 MyTest t = response.body();
-                Log.d(TAG, " code: "  + statusCode);
-                Log.d(TAG, " body: "  + t.toString());
+                Log.d(TAG, "c1 code: " + statusCode);
+                Log.d(TAG, "c1 body: " + t.toString());
             }
 
             @Override
             public void onFailure(Throwable t) {
-                Log.d(TAG, " error: " + t.getMessage());
+                Log.d(TAG, "c1 error: " + t.getMessage());
             }
         });
+
+        // get two tests
+        Call<List<MyTest>> c2 = service.getTestList();
+        c2.enqueue(new Callback<List<MyTest>>() {
+            @Override
+            public void onResponse(Response<List<MyTest>> response, Retrofit retrofit) {
+                int statusCode = response.code();
+                List<MyTest> list = response.body();
+                Log.d(TAG, "c2 code: " + statusCode);
+                Log.d(TAG, "c2 body: " + list.toString());
+                // private ArrayList<ModelSetJson> mListSetJson;
+                // AdapterTest adap = new AdapterTest(getActivity() or this, mListSetJson);
+                // when mListSetJson changes, then adap.notifyDataSetChanged();
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                Log.d(TAG, "c2 error: " + t.getMessage());
+            }
+        });
+
+        // observable
+        Log.d(TAG, "starting up observable...");
+        Observable<MyTest> o = service.getOneTestRx();
+        o.observeOn(AndroidSchedulers.mainThread()).subscribe(new Subscriber<MyTest>() {
+            @Override
+            public void onCompleted() {
+                Log.d(TAG, "[onCompleted] ");
+            }
+
+            @Override
+            public void onError(Throwable e) {
+                Log.d(TAG, "[onError] " + e.getMessage());
+            }
+
+            @Override
+            public void onNext(MyTest m) {
+                Log.d(TAG, "[onNext] " + m.toString());
+            }
+        });
+
         // save it to database
     }
 
-    public class GovMember {
-        private String name;
-        private String twitterId;
-    }
-
     public class MyTest {
-        private String name;
-        public String getName() { return name; }
-        public void setName(String name) { this.name = name; }
+        private String name, url;
+        private int num;
 
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public String getUrl() {
+            return url;
+        }
+
+        public void setUrl(String url) {
+            this.url = url;
+        }
+
+        public int getNum() {
+            return num;
+        }
+
+        public void setNum(int num) {
+            this.num = num;
+        }
+
+        @Override
         public String toString() {
-            return "Name: " + this.name;
+            return "Name: " + this.name + ", num: " + this.num + ", url: " + this.url;
         }
     }
 
     public interface GovService {
         @GET("/txt2lrn/sat/index_1.json")
-        Call<MyTest> getMyTest();
+        Call<MyTest> getOneTest();
+
+        @GET("/txt2lrn/sat/index.json")
+        Call<List<MyTest>> getTestList();
 
         @GET("/txt2lrn/sat/index_1.json")
-        Observable<MyTest> getMyTestObservable();
+        Observable<MyTest> getOneTestRx();
+
+        @GET("/txt2lrn/sat/index.json")
+        Observable<List<MyTest>> getTestListRx();
 
         //@GET("/gists/{id}")
         //Observable<GistDetail> gist(@Path("id") String id);
     }
-
 
 
     private void testSqlBrite() {
@@ -125,34 +209,40 @@ public class MainActivity extends AppCompatActivity {
             public void call(SqlBrite.Query query) {
                 Cursor c = query.run();
                 Log.d(TAG, "[subscribe] c.getCount() " + c.getCount());
-                // TODO parse data...
+
+                // either pass cursor to adapter or get data into a ListView
+                mAdapter.swapCursor(c);
+
+                /* TODO clear list, parse data, put into ListView ...
+                mGovList = new ArrayList<>();
                 while (c.moveToNext()) {
                     String name = c.getString(cache.getColumnIndex(c, SQLiteGovHelper.COLUMN_NAME));
                     String twitterid = c.getString(cache.getColumnIndex(c, SQLiteGovHelper.COLUMN_TWITTERID));
                     //Log.d(TAG, " " + name + ", @" + twitterid);
+                    mGovList.add(new ModelGovMember(name, twitterid));
                 }
+
+                // set adapter*/
             }
         });
+
+        // delete data
+        final int deletedRows = mDB.delete(mTable, "1");
+        // mDB.delete(mTable, "1", (String)null);
+        Log.d(TAG, "[onResume] deletedRows: " + deletedRows);
+
+        // then insert data
+        insertUsersViaTransaction();
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        Log.d(TAG, "[onResume]");
-        // write some data
-        //final int deletedRows = mDB.delete(mTable, "1", (String)null);
-        //Log.d(TAG, "[onResume] deletedRows: " + deletedRows);
-        //insertViaTransaction();
-    }
+//    @Override
+//    protected void onResume() {
+//        super.onResume();
+//        Log.d(TAG, "[onResume]");
+//        //insertViaTransaction();
+//    }
 
-    public ContentValues createUser(String name, String twitterid) {
-        ContentValues cv = new ContentValues();
-        cv.put(SQLiteGovHelper.COLUMN_NAME, name);
-        cv.put(SQLiteGovHelper.COLUMN_TWITTERID, twitterid);
-        return cv;
-    }
-
-    public void insertViaTransaction() {
+    public void insertUsersViaTransaction() {
         BriteDatabase.Transaction transaction = mDB.newTransaction();
         try {
             mDB.insert(mTable, createUser("Android", "Android"));
@@ -162,6 +252,13 @@ public class MainActivity extends AppCompatActivity {
         } finally {
             transaction.end();
         }
+    }
+
+    public ContentValues createUser(String name, String twitterid) {
+        ContentValues cv = new ContentValues();
+        cv.put(SQLiteGovHelper.COLUMN_NAME, name);
+        cv.put(SQLiteGovHelper.COLUMN_TWITTERID, twitterid);
+        return cv;
     }
 
     @Override
