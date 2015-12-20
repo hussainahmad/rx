@@ -65,7 +65,7 @@ public class Question {
 
     @Override
     public String toString() {
-        return "[" + i + "] " + q + "(" + a1 + ",) " + a2 + ",) " + a3 + ",) " + a5 + ",) " + a5 + ")";
+        return "[" + i + "] " + q + " (" + a1 + ", " + a2 + ", " + a3 + ", " + a5 + ", " + a5 + ")";
     }
 
 }
