@@ -66,7 +66,7 @@ public class MainActivity2 extends AppCompatActivity {
                     }
                 });*/
 
-        service.getTestListRx()
+        /*service.getTestListRx()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .unsubscribeOn(Schedulers.io())
@@ -87,29 +87,31 @@ public class MainActivity2 extends AppCompatActivity {
                         Log.d(TAG, "[onError] ");
                         t.printStackTrace();
                     }
+                });*/
+
+            service.getQuestionRx()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .unsubscribeOn(Schedulers.io())
+                .subscribe(new Observer<List<Question>>() {
+                    @Override
+                    public void onNext(List<Question> lq) {
+                        Log.d(TAG, "[onNext] ");
+                        for (Question q: lq ) {
+                            Log.d(TAG, " " + q.toString());
+                        }
+                    }
+
+                    @Override
+                    public void onCompleted() {
+                        Log.d(TAG, "[onCompleted] ");
+                    }
+
+                    @Override
+                    public void onError(Throwable t) {
+                        Log.d(TAG, "[onError] ");
+                        t.printStackTrace();
+                    }
                 });
-
-        /* BAD code
-        Observable<MyTest> o = service.getOneTestRx();
-        o.subscribeOn(Schedulers.io());
-        o.observeOn(AndroidSchedulers.mainThread());
-        o.unsubscribeOn(Schedulers.io());
-        o.subscribe(new Observer<MyTest>() {
-            @Override
-            public void onCompleted() {
-                Log.d(TAG, "[onCompleted] ");
-            }
-
-            @Override
-            public void onError(Throwable t) {
-                Log.d(TAG, "[onError] ");
-                t.printStackTrace();
-            }
-
-            @Override
-            public void onNext(MyTest m) {
-                Log.d(TAG, "[onNext] " + m.toString());
-            }
-        });*/
     }
 }
