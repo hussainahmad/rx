@@ -27,10 +27,8 @@ import retrofit.GsonConverterFactory;
 import retrofit.Response;
 import retrofit.Retrofit;
 import retrofit.RxJavaCallAdapterFactory;
-import retrofit.http.GET;
 import rx.Observable;
 import rx.Subscriber;
-import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 
 public class MainActivity extends AppCompatActivity {
@@ -68,8 +66,8 @@ public class MainActivity extends AppCompatActivity {
         // setup data for ListView
         mGovList = new ArrayList<>();
 
-        testSqlBrite();
-        //testRetrofit();
+        //testSqlBrite();
+        testRetrofit();
     }
 
     private void testRetrofit() {
@@ -124,7 +122,8 @@ public class MainActivity extends AppCompatActivity {
         // observable
         Log.d(TAG, "starting up observable...");
         Observable<MyTest> o = service.getOneTestRx();
-        o.observeOn(AndroidSchedulers.mainThread()).subscribe(new Subscriber<MyTest>() {
+        //o.observeOn(AndroidSchedulers.mainThread())
+        o.subscribe(new Subscriber<MyTest>() {
             @Override
             public void onCompleted() {
                 Log.d(TAG, "[onCompleted] ");
@@ -143,58 +142,6 @@ public class MainActivity extends AppCompatActivity {
 
         // save it to database
     }
-
-    public class MyTest {
-        private String name, url;
-        private int num;
-
-        public String getName() {
-            return name;
-        }
-
-        public void setName(String name) {
-            this.name = name;
-        }
-
-        public String getUrl() {
-            return url;
-        }
-
-        public void setUrl(String url) {
-            this.url = url;
-        }
-
-        public int getNum() {
-            return num;
-        }
-
-        public void setNum(int num) {
-            this.num = num;
-        }
-
-        @Override
-        public String toString() {
-            return "Name: " + this.name + ", num: " + this.num + ", url: " + this.url;
-        }
-    }
-
-    public interface GovService {
-        @GET("/txt2lrn/sat/index_1.json")
-        Call<MyTest> getOneTest();
-
-        @GET("/txt2lrn/sat/index.json")
-        Call<List<MyTest>> getTestList();
-
-        @GET("/txt2lrn/sat/index_1.json")
-        Observable<MyTest> getOneTestRx();
-
-        @GET("/txt2lrn/sat/index.json")
-        Observable<List<MyTest>> getTestListRx();
-
-        //@GET("/gists/{id}")
-        //Observable<GistDetail> gist(@Path("id") String id);
-    }
-
 
     private void testSqlBrite() {
         SqlBrite sqlBrite = SqlBrite.create();  // should probably move to Application
