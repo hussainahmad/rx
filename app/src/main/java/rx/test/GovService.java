@@ -22,6 +22,9 @@ public interface GovService {
     @GET("/txt2lrn/sat/index.json")
     Observable<List<MyTest>> getTestListRx();
 
+    @GET("/txt2lrn/satvocab/satvocab_000.json")
+    Observable<List<Question>> getQuestionRx();
+
     //@GET("/gists/{id}")
     //Observable<GistDetail> gist(@Path("id") String id);
 }
