@@ -71,16 +71,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void testRetrofit() {
-        // http://square.github.io/retrofit, documentation
-        // OkHttpClient client = new OkHttpClient();
-        //client.interceptors().add();
-
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("http://goanuj.freeshell.org")
-                .addConverterFactory(GsonConverterFactory.create())
-                .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
-                .build();
-        GovService service = retrofit.create(GovService.class);
+        GovService service = ApplicationRx.getService();
 
         // do a HTTP:GET, observe result and print it out
         Call<MyTest> call = service.getOneTest();
@@ -144,10 +135,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void testSqlBrite() {
-        SqlBrite sqlBrite = SqlBrite.create();  // should probably move to Application
         // http://www.vogella.com/tutorials/AndroidSQLite/article.html
-        SQLiteGovHelper openHelper = new SQLiteGovHelper(this);
-        mDB = sqlBrite.wrapDatabaseHelper(openHelper);
+        // SqlBrite sqlBrite = SqlBrite.create();
+        // SQLiteGovHelper openHelper = new SQLiteGovHelper(this);
+        // mDB = sqlBrite.wrapDatabaseHelper(openHelper);
+        mDB = ApplicationRx.getDB();
+
         // now read some data
         final ColumnIndexCache cache = new ColumnIndexCache();
         Observable<SqlBrite.Query> members = mDB.createQuery(mTable, "SELECT * FROM " + mTable);

@@ -4,6 +4,7 @@ import java.util.List;
 
 import retrofit.Call;
 import retrofit.http.GET;
+import retrofit.http.Path;
 import rx.Observable;
 
 /**
@@ -22,8 +23,8 @@ public interface GovService {
     @GET("/txt2lrn/sat/index.json")
     Observable<List<MyTest>> getTestListRx();
 
-    @GET("/txt2lrn/satvocab/satvocab_000.json")
-    Observable<List<Question>> getQuestionRx();
+    @GET("/txt2lrn/satvocab/{filename}")
+    Observable<List<Question>> getQuestionRx(@Path("filename") String filename);
 
     //@GET("/gists/{id}")
     //Observable<GistDetail> gist(@Path("id") String id);

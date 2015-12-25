@@ -1,0 +1,45 @@
+package rx.test;
+
+import android.app.Application;
+
+import com.squareup.sqlbrite.BriteDatabase;
+import com.squareup.sqlbrite.SqlBrite;
+
+import retrofit.GsonConverterFactory;
+import retrofit.Retrofit;
+import retrofit.RxJavaCallAdapterFactory;
+
+/**
+ * Created by agoyal3 on 12/24/15.
+ */
+public class ApplicationRx  extends Application {
+    private static GovService mService;
+    private static BriteDatabase mDB;
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        // initialize singletons so their instances are bound to the application process.
+        // http://www.devahead.com/blog/2011/06/extending-the-android-application-class-and-dealing-with-singleton/
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl("http://goanuj.freeshell.org")
+                .addConverterFactory(GsonConverterFactory.create())
+                .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
+                .build();
+        mService = retrofit.create(GovService.class);
+
+        // http://www.vogella.com/tutorials/AndroidSQLite/article.html
+        SqlBrite sqlBrite = SqlBrite.create();
+        SQLiteGovHelper openHelper = new SQLiteGovHelper(this);
+        mDB = sqlBrite.wrapDatabaseHelper(openHelper);
+    }
+
+    public static GovService getService() {
+        return mService;
+    }
+
+    public static BriteDatabase getDB() {
+        return mDB;
+    }
+
+}

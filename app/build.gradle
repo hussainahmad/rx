@@ -8,8 +8,8 @@ android {
         applicationId "rx.test"
         minSdkVersion 9
         targetSdkVersion 23
-        versionCode 20151218
-        versionName "1.15.1218"
+        versionCode 20151224
+        versionName "1.15.1224"
     }
     buildTypes {
         release {
@@ -26,9 +26,9 @@ dependencies {
     compile 'com.android.support:design:23.1.1'
 
     // other stuff
-    compile 'com.squareup.sqlbrite:sqlbrite:0.5.0'
-    compile 'com.squareup.okhttp:okhttp:2.6.0'
-    compile 'com.squareup.picasso:picasso:2.5.2'
+    compile 'com.squareup.sqlbrite:sqlbrite:0.5.0' // https://github.com/square/sqlbrite
+    compile 'com.squareup.okhttp:okhttp:2.7.0'     // https://github.com/square/okhttp
+    compile 'com.squareup.picasso:picasso:2.5.2'   // https://github.com/square/picasso
 
     // rx
     compile 'io.reactivex:rxandroid:1.1.0'
