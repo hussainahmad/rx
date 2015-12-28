@@ -1,5 +1,7 @@
 package rx.test;
 
+import android.database.Cursor;
+
 /**
  * Created by agoyal3 on 12/19/15.
  */
@@ -66,6 +68,18 @@ public class Question {
     @Override
     public String toString() {
         return "[" + i + "] " + q + " (" + a1 + ", " + a2 + ", " + a3 + ", " + a5 + ", " + a5 + ")";
+    }
+
+    public static Question fromCursor(Cursor c) {
+        Question q = new Question();
+        q.setI( c.getString(c.getColumnIndexOrThrow(SQLiteGovHelper.COL_I)));
+        q.setQ( c.getString(c.getColumnIndexOrThrow(SQLiteGovHelper.COL_Q)));
+        q.setA1( c.getString(c.getColumnIndexOrThrow(SQLiteGovHelper.COL_A1)));
+        q.setA2( c.getString(c.getColumnIndexOrThrow(SQLiteGovHelper.COL_A2)));
+        q.setA3( c.getString(c.getColumnIndexOrThrow(SQLiteGovHelper.COL_A3)));
+        q.setA4( c.getString(c.getColumnIndexOrThrow(SQLiteGovHelper.COL_A4)));
+        q.setA5( c.getString(c.getColumnIndexOrThrow(SQLiteGovHelper.COL_A5)));
+        return q;
     }
 
 }

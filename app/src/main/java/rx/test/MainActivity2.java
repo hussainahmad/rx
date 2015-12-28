@@ -30,6 +30,19 @@ public class MainActivity2 extends AppCompatActivity {
     private final String TAG = getClass().getSimpleName();
     private final String mTable = SQLiteGovHelper.TABLE_QUESTION;
 
+    private String createSQL(Question q){
+        StringBuilder sb = new StringBuilder("insert or replace into t_q (i,q,a1,a2,a3,a4,a5) ");
+        sb.append("values (");
+        sb.append(q.getI()).append(",\"");
+        sb.append(q.getQ()).append("\",\"");
+        sb.append(q.getA1()).append("\",\"");
+        sb.append(q.getA2()).append("\",\"");
+        sb.append(q.getA3()).append("\",\"");
+        sb.append(q.getA4()).append("\",\"");
+        sb.append(q.getA5()).append("\")");
+        return sb.toString();
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -45,8 +58,8 @@ public class MainActivity2 extends AppCompatActivity {
         SqlBrite sqlBrite = SqlBrite.create();
         SQLiteGovHelper openHelper = new SQLiteGovHelper(this);
         final BriteDatabase mDB = sqlBrite.wrapDatabaseHelper(openHelper);
-        final int deletedRows = mDB.delete(mTable, "1");
-        Log.d(TAG, "[onCreate] deletedRows: " + deletedRows);
+        //final int deletedRows = mDB.delete(mTable, "1");
+        //Log.d(TAG, "[onCreate] deletedRows: " + deletedRows);
 
         // get service
         final GovService service = ApplicationRx.getService();
@@ -64,10 +77,10 @@ public class MainActivity2 extends AppCompatActivity {
                         try {
                             // start at 1 to avoid issues
                             for (int i = 1; i < questionList.size(); ++i) {
-                                long result = mDB.insert(mTable, createUser(questionList.get(i)));
-                                //mDB.execute();
-                                //long result = mDB.update(mTable, createUser(questionList.get(i)), "i = " + questionList.get(i).getI());
-                                Log.d(TAG, "long: " + result + ", " + questionList.get(i).toString());
+                                final Question q = questionList.get(i);
+                                mDB.delete(mTable, "i=" + q.getI());
+                                mDB.execute(createSQL(q));
+                                // Log.d(TAG, "exec: " + q.toString());
                             }
                             transaction.markSuccessful();
                         } finally {
@@ -84,6 +97,10 @@ public class MainActivity2 extends AppCompatActivity {
                             @Override
                             public void call(SqlBrite.Query query) {
                                 Cursor c = query.run();
+//                                while (c.moveToNext()) {
+//                                    Question q = Question.fromCursor(c);
+//                                    Log.d(TAG, " " + q.toString());
+//                                }
                                 Log.d(TAG, "[onCompleted] c.getCount() " + c.getCount());
                             }
                         });

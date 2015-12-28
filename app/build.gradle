@@ -8,8 +8,8 @@ android {
         applicationId "rx.test"
         minSdkVersion 9
         targetSdkVersion 23
-        versionCode 20151224
-        versionName "1.15.1224"
+        versionCode 20151228
+        versionName "1.15.1228"
     }
     buildTypes {
         release {
@@ -30,10 +30,9 @@ dependencies {
     compile 'com.squareup.okhttp:okhttp:2.7.0'     // https://github.com/square/okhttp
     compile 'com.squareup.picasso:picasso:2.5.2'   // https://github.com/square/picasso
 
-    // rx
-    compile 'io.reactivex:rxandroid:1.1.0'
-    // Because RxAndroid releases are few and far between, it is recommended you also
+    // rx: because RxAndroid releases are few and far between, it is recommended you also
     // explicitly depend on RxJava's latest version for bug fixes and new features.
+    compile 'io.reactivex:rxandroid:1.1.0'
     compile 'io.reactivex:rxjava:1.1.0'
 
     // retrofit
