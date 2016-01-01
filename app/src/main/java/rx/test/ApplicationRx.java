@@ -1,6 +1,7 @@
 package rx.test;
 
 import android.app.Application;
+import android.content.Context;
 
 import com.squareup.sqlbrite.BriteDatabase;
 import com.squareup.sqlbrite.SqlBrite;
@@ -14,7 +15,7 @@ import retrofit.RxJavaCallAdapterFactory;
  */
 public class ApplicationRx  extends Application {
     private static GovService mService;
-    private static BriteDatabase mDB;
+    // private static BriteDatabase mDB;
 
     @Override
     public void onCreate() {
@@ -29,16 +30,19 @@ public class ApplicationRx  extends Application {
         mService = retrofit.create(GovService.class);
 
         // http://www.vogella.com/tutorials/AndroidSQLite/article.html
-        SqlBrite sqlBrite = SqlBrite.create();
-        SQLiteGovHelper openHelper = new SQLiteGovHelper(this);
-        mDB = sqlBrite.wrapDatabaseHelper(openHelper);
+        // SqlBrite sqlBrite = SqlBrite.create();
+        // SQLiteGovHelper openHelper = new SQLiteGovHelper(this);
+        // mDB = sqlBrite.wrapDatabaseHelper(openHelper);
     }
 
     public static GovService getService() {
         return mService;
     }
 
-    public static BriteDatabase getDB() {
+    public static BriteDatabase getDB(Context context) {
+        SqlBrite sqlBrite = SqlBrite.create();
+        SQLiteGovHelper openHelper = new SQLiteGovHelper(context);
+        BriteDatabase mDB = sqlBrite.wrapDatabaseHelper(openHelper);
         return mDB;
     }
 
