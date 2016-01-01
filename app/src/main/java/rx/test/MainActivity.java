@@ -135,11 +135,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void testSqlBrite() {
-        // http://www.vogella.com/tutorials/AndroidSQLite/article.html
-        // SqlBrite sqlBrite = SqlBrite.create();
-        // SQLiteGovHelper openHelper = new SQLiteGovHelper(this);
-        // mDB = sqlBrite.wrapDatabaseHelper(openHelper);
-        mDB = ApplicationRx.getDB();
+        mDB = ApplicationRx.getDB(this);
 
         // now read some data
         final ColumnIndexCache cache = new ColumnIndexCache();
