@@ -29,19 +29,7 @@ import rx.schedulers.Schedulers;
 public class MainActivity2 extends AppCompatActivity {
     private final String TAG = getClass().getSimpleName();
     private final String mTable = SQLiteGovHelper.TABLE_QUESTION;
-
-    private String createSQL(Question q){
-        StringBuilder sb = new StringBuilder("insert or replace into t_q (i,q,a1,a2,a3,a4,a5) ");
-        sb.append("values (");
-        sb.append(q.getI()).append(",\"");
-        sb.append(q.getQ()).append("\",\"");
-        sb.append(q.getA1()).append("\",\"");
-        sb.append(q.getA2()).append("\",\"");
-        sb.append(q.getA3()).append("\",\"");
-        sb.append(q.getA4()).append("\",\"");
-        sb.append(q.getA5()).append("\")");
-        return sb.toString();
-    }
+    private BriteDatabase mDB;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,17 +43,52 @@ public class MainActivity2 extends AppCompatActivity {
         mRV.setItemAnimator(new DefaultItemAnimator());// setup ItemAnimator
 
         // setup sqlBrite
-        SqlBrite sqlBrite = SqlBrite.create();
-        SQLiteGovHelper openHelper = new SQLiteGovHelper(this);
-        final BriteDatabase mDB = sqlBrite.wrapDatabaseHelper(openHelper);
-        //final int deletedRows = mDB.delete(mTable, "1");
-        //Log.d(TAG, "[onCreate] deletedRows: " + deletedRows);
+        // SqlBrite sqlBrite = SqlBrite.create();
+        // SQLiteGovHelper openHelper = new SQLiteGovHelper(this);
+        // mDB = sqlBrite.wrapDatabaseHelper(openHelper);
+        mDB = ApplicationRx.getDB(this);
+        final int deletedRows = mDB.delete(mTable, "1");
+        Log.d(TAG, "[onCreate] deletedRows: " + deletedRows);
 
         // get service
         final GovService service = ApplicationRx.getService();
 
+        // check if questions exist on disk first
+        final String fileName = "satvocab_000.json";
+        //Log.d(TAG, "fileName.substring(9,12): " + fileName.substring(9,12));
+        int low = Integer.valueOf(fileName.substring(9, 12)) * 10;
+        int high = low + 10;
+        Log.d(TAG, "low: " + low + ", high: " + high);
+
+        Observable<SqlBrite.Query> members = mDB.createQuery(mTable,
+                "SELECT * FROM " + mTable + " WHERE i>" + low + " AND i<=" + high);
+        members.subscribe(new Action1<SqlBrite.Query>() {
+            @Override
+            public void call(SqlBrite.Query query) {
+                Cursor c = query.run();
+                Log.d(TAG, "[SqlBrite:call] c.getCount() " + c.getCount());
+                if (c.getCount() < 10) {
+                    Log.d(TAG, " No data in database, calling getDataFromNetwork().");
+                    getDataFromNetwork(service, fileName);
+                    // store it in database
+                    // get data from database
+                } else {
+                    Log.d(TAG, " Yes data in database!");
+                    // get data from database
+                    while (c.moveToNext()) {
+                        Question q = Question.fromCursor(c);
+                        Log.d(TAG, " " + q.toString());
+                    }
+                }
+                c.close();
+            }
+        });
+    }
+
+    private void getDataFromNetwork(GovService service, String fileName) {
+        // otherwise go to network
         Log.d(TAG, "starting up observable...");
-        service.getQuestionRx("satvocab_000.json")
+        service.getQuestionRx(fileName)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .unsubscribeOn(Schedulers.io())
@@ -92,15 +115,17 @@ public class MainActivity2 extends AppCompatActivity {
                     @Override
                     public void onCompleted() {
                         Log.d(TAG, "[onCompleted] ");
+                        // TODO: filter by low, high
                         Observable<SqlBrite.Query> members = mDB.createQuery(mTable, "SELECT * FROM " + mTable);
                         members.subscribe(new Action1<SqlBrite.Query>() {
                             @Override
                             public void call(SqlBrite.Query query) {
                                 Cursor c = query.run();
-//                                while (c.moveToNext()) {
-//                                    Question q = Question.fromCursor(c);
-//                                    Log.d(TAG, " " + q.toString());
-//                                }
+                                while (c.moveToNext()) {
+                                    Question q = Question.fromCursor(c);
+                                    Log.d(TAG, " " + q.toString());
+                                }
+                                c.close();
                                 Log.d(TAG, "[onCompleted] c.getCount() " + c.getCount());
                             }
                         });
@@ -112,9 +137,34 @@ public class MainActivity2 extends AppCompatActivity {
                         t.printStackTrace();
                     }
                 });
+    }
 
+    private String createSQL(Question q) {
+        StringBuilder sb = new StringBuilder("insert or replace into t_q (i,q,a1,a2,a3,a4,a5) ");
+        sb.append("values (");
+        sb.append(q.getI()).append(",\"");
+        sb.append(q.getQ()).append("\",\"");
+        sb.append(q.getA1()).append("\",\"");
+        sb.append(q.getA2()).append("\",\"");
+        sb.append(q.getA3()).append("\",\"");
+        sb.append(q.getA4()).append("\",\"");
+        sb.append(q.getA5()).append("\")");
+        return sb.toString();
+    }
 
-        /* call service methods to get data
+    public ContentValues createUser(Question q) {
+        ContentValues cv = new ContentValues();
+        cv.put(SQLiteGovHelper.COL_I, q.getI());
+        cv.put(SQLiteGovHelper.COL_Q, q.getQ());
+        cv.put(SQLiteGovHelper.COL_A1, q.getA1());
+        cv.put(SQLiteGovHelper.COL_A2, q.getA2());
+        cv.put(SQLiteGovHelper.COL_A3, q.getA3());
+        cv.put(SQLiteGovHelper.COL_A4, q.getA4());
+        cv.put(SQLiteGovHelper.COL_A5, q.getA5());
+        return cv;
+    }
+
+            /* call service methods to get data
         service.getOneTestRx()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -159,18 +209,4 @@ public class MainActivity2 extends AppCompatActivity {
                         t.printStackTrace();
                     }
                 });*/
-
-    }
-
-    public ContentValues createUser(Question q) {
-        ContentValues cv = new ContentValues();
-        cv.put(SQLiteGovHelper.COL_I, q.getI());
-        cv.put(SQLiteGovHelper.COL_Q, q.getQ());
-        cv.put(SQLiteGovHelper.COL_A1, q.getA1());
-        cv.put(SQLiteGovHelper.COL_A2, q.getA2());
-        cv.put(SQLiteGovHelper.COL_A3, q.getA3());
-        cv.put(SQLiteGovHelper.COL_A4, q.getA4());
-        cv.put(SQLiteGovHelper.COL_A5, q.getA5());
-        return cv;
-    }
 }
