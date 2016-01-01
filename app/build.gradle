@@ -8,8 +8,8 @@ android {
         applicationId "rx.test"
         minSdkVersion 9
         targetSdkVersion 23
-        versionCode 20151228
-        versionName "1.15.1228"
+        versionCode 20160101
+        versionName "1.16.0101"
     }
     buildTypes {
         release {
