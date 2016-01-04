@@ -42,10 +42,7 @@ public class MainActivity2 extends AppCompatActivity {
         mRV.setLayoutManager(new LinearLayoutManager(this));// setup LayoutManager
         mRV.setItemAnimator(new DefaultItemAnimator());// setup ItemAnimator
 
-        // setup sqlBrite
-        // SqlBrite sqlBrite = SqlBrite.create();
-        // SQLiteGovHelper openHelper = new SQLiteGovHelper(this);
-        // mDB = sqlBrite.wrapDatabaseHelper(openHelper);
+        // get db
         mDB = ApplicationRx.getDB(this);
         final int deletedRows = mDB.delete(mTable, "1");
         Log.d(TAG, "[onCreate] deletedRows: " + deletedRows);
