@@ -1,5 +1,5 @@
 # rx
-RxJava and Retrofit
+SqlBrite, RxJava and Retrofit
 
 https://www.youtube.com/watch?v=KIAoQbAu3eA&feature=youtu.be
 
