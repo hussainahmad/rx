@@ -44,8 +44,8 @@ public class MainActivity2 extends AppCompatActivity {
 
         // get db
         mDB = ApplicationRx.getDB(this);
-        final int deletedRows = mDB.delete(mTable, "1");
-        Log.d(TAG, "[onCreate] deletedRows: " + deletedRows);
+        //final int deletedRows = mDB.delete(mTable, "1");
+        //Log.d(TAG, "[onCreate] deletedRows: " + deletedRows);
         final GovService service = ApplicationRx.getService();
 
         // check if questions exist on disk first

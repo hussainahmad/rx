@@ -13,9 +13,8 @@ import retrofit.RxJavaCallAdapterFactory;
 /**
  * Created by agoyal3 on 12/24/15.
  */
-public class ApplicationRx  extends Application {
+public class ApplicationRx extends Application {
     private static GovService mService;
-    // private static BriteDatabase mDB;
 
     @Override
     public void onCreate() {
@@ -28,11 +27,6 @@ public class ApplicationRx  extends Application {
                 .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
                 .build();
         mService = retrofit.create(GovService.class);
-
-        // http://www.vogella.com/tutorials/AndroidSQLite/article.html
-        // SqlBrite sqlBrite = SqlBrite.create();
-        // SQLiteGovHelper openHelper = new SQLiteGovHelper(this);
-        // mDB = sqlBrite.wrapDatabaseHelper(openHelper);
     }
 
     public static GovService getService() {
