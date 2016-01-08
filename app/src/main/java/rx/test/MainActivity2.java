@@ -46,16 +46,17 @@ public class MainActivity2 extends AppCompatActivity {
         mDB = ApplicationRx.getDB(this);
         final int deletedRows = mDB.delete(mTable, "1");
         Log.d(TAG, "[onCreate] deletedRows: " + deletedRows);
-
-        // get service
         final GovService service = ApplicationRx.getService();
 
         // check if questions exist on disk first
-        final String fileName = "satvocab_000.json";
-        //Log.d(TAG, "fileName.substring(9,12): " + fileName.substring(9,12));
+        checkDisk(service, "satvocab_000.json");
+    }
+
+    private void checkDisk(final GovService service, final String fileName) {
+        Log.d(TAG, "[checkDisk] fileName.substring(9,12): " + fileName.substring(9,12));
         int low = Integer.valueOf(fileName.substring(9, 12)) * 10;
         int high = low + 10;
-        Log.d(TAG, "low: " + low + ", high: " + high);
+        Log.d(TAG, " low: " + low + ", high: " + high);
 
         Observable<SqlBrite.Query> members = mDB.createQuery(mTable,
                 "SELECT * FROM " + mTable + " WHERE i>" + low + " AND i<=" + high);
