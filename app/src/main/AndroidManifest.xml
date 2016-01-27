@@ -3,6 +3,12 @@
     package="rx.test">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- http://developer.android.com/training/sync-adapters/creating-sync-adapter.html -->
+    <uses-permission android:name="android.permission.READ_SYNC_SETTINGS" />
+    <uses-permission android:name="android.permission.WRITE_SYNC_SETTINGS" />
+    <!-- http://developer.android.com/reference/android/accounts/AccountManager.html#addAccountExplicitly(android.accounts.Account, java.lang.String, android.os.Bundle) -->
+    <uses-permission android:name="android.permission.AUTHENTICATE_ACCOUNTS" />
+    <uses-permission android:name="android.permission.GET_ACCOUNTS" />
 
     <application
         android:name=".ApplicationRx"
@@ -12,15 +18,33 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:name=".MainActivity2"
+            android:name=".ActivityData2Sql"
             android:label="@string/app_name"
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
+                <action android:name="android.accounts.AccountAuthenticator" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <sync-adapter xmlns:android="http://schemas.android.com/apk/res/android"
+            android:accountType="rx.test"
+            android:allowParallelSyncs="false"
+            android:contentAuthority="rx.test.provider"
+            android:isAlwaysSyncable="true"
+            android:supportsUploading="false"
+            android:userVisible="false" />
+
+        <service
+            android:name="rx.test.SyncService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.content.SyncAdapter" />
+                <action android:name="android.accounts.AccountAuthenticator" />
+            </intent-filter>
+        </service>
+
     </application>
 
 </manifest>

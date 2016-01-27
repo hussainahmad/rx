@@ -21,17 +21,15 @@ import com.squareup.sqlbrite.SqlBrite;
 import java.util.ArrayList;
 import java.util.List;
 
-import retrofit.Call;
-import retrofit.Callback;
-import retrofit.GsonConverterFactory;
-import retrofit.Response;
-import retrofit.Retrofit;
-import retrofit.RxJavaCallAdapterFactory;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
 import rx.Observable;
 import rx.Subscriber;
 import rx.functions.Action1;
 
-public class MainActivity extends AppCompatActivity {
+public class ActivityRetrofit extends AppCompatActivity {
     private final String TAG = getClass().getSimpleName();
     private final String mTable = SQLiteGovHelper.TABLE_GOV_MEMBERS;
     private BriteDatabase mDB;
@@ -75,26 +73,28 @@ public class MainActivity extends AppCompatActivity {
 
         // do a HTTP:GET, observe result and print it out
         Call<MyTest> call = service.getOneTest();
-        call.enqueue(new Callback<MyTest>() {
-            @Override
-            public void onResponse(Response<MyTest> response, Retrofit retrofit) {
-                int statusCode = response.code();
-                MyTest t = response.body();
-                Log.d(TAG, "c1 code: " + statusCode);
-                Log.d(TAG, "c1 body: " + t.toString());
-            }
 
-            @Override
-            public void onFailure(Throwable t) {
-                Log.d(TAG, "c1 error: " + t.getMessage());
-            }
-        });
+        call.enqueue(new Callback<MyTest>() {
+                         @Override
+                         public void onResponse(Response<MyTest> response) {
+                             int statusCode = response.code();
+                             MyTest t = response.body();
+                             Log.d(TAG, "c1 code: " + statusCode);
+                             Log.d(TAG, "c1 body: " + t.toString());
+                         }
+
+                         @Override
+                         public void onFailure(Throwable t) {
+                             Log.d(TAG, "c1 error: " + t.getMessage());
+                         }
+                     }
+        );
 
         // get two tests
         Call<List<MyTest>> c2 = service.getTestList();
         c2.enqueue(new Callback<List<MyTest>>() {
             @Override
-            public void onResponse(Response<List<MyTest>> response, Retrofit retrofit) {
+            public void onResponse(Response<List<MyTest>> response) {
                 int statusCode = response.code();
                 List<MyTest> list = response.body();
                 Log.d(TAG, "c2 code: " + statusCode);
