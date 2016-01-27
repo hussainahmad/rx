@@ -24,7 +24,6 @@
         android:layout_height="wrap_content"
         android:layout_marginLeft="10dp"
         android:layout_toRightOf="@id/tv_hello"
-        android:clickable="true"
         android:text="GET" />
 
     <Button
@@ -33,7 +32,6 @@
         android:layout_height="wrap_content"
         android:layout_marginLeft="10dp"
         android:layout_toRightOf="@id/btn_get"
-        android:clickable="true"
         android:text="DEL" />
 
     <android.support.v7.widget.RecyclerView
