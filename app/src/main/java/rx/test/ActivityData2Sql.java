@@ -9,6 +9,8 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
 
 import com.squareup.sqlbrite.BriteDatabase;
 import com.squareup.sqlbrite.SqlBrite;
@@ -17,6 +19,7 @@ import java.util.List;
 
 import rx.Observable;
 import rx.Observer;
+import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import rx.schedulers.Schedulers;
@@ -25,12 +28,15 @@ public class ActivityData2Sql extends AppCompatActivity {
     private final String TAG = getClass().getSimpleName();
     private final String mTable = SQLiteGovHelper.TABLE_QUESTION;
     private BriteDatabase mDB;
+    private Button mButtonGet, mButtonDelete;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.d(TAG, "[onCreate]");
         setContentView(R.layout.activity_main);
+        mButtonGet = (Button) findViewById(R.id.btn_get);
+        mButtonDelete = (Button) findViewById(R.id.btn_delete);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         RecyclerView mRV = (RecyclerView) findViewById(R.id.rv);
@@ -45,6 +51,22 @@ public class ActivityData2Sql extends AppCompatActivity {
 
         // check if questions exist on disk first
         checkDisk(service, "satvocab_000.json");
+
+        mButtonGet.setOnClickListener(new Button.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Log.d(TAG, "[onclick] get");
+                checkDisk(service, "satvocab_001.json");
+            }
+        });
+
+        mButtonDelete.setOnClickListener(new Button.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Log.d(TAG, "[onclick] delete");
+                mDB.delete(mTable, "i>0");
+            }
+        });
     }
 
     private int getLow(String fileName) {
@@ -58,7 +80,9 @@ public class ActivityData2Sql extends AppCompatActivity {
 
         Observable<SqlBrite.Query> members = mDB.createQuery(mTable,
                 "SELECT * FROM " + mTable + " WHERE i>" + low + " AND i<=" + high);
-        members.subscribe(new Action1<SqlBrite.Query>() {
+
+        Log.d(TAG, "[checkDisk] subscribe");
+        Subscription s = members.subscribe(new Action1<SqlBrite.Query>() {
             @Override
             public void call(SqlBrite.Query query) {
                 Cursor c = query.run();
@@ -71,12 +95,14 @@ public class ActivityData2Sql extends AppCompatActivity {
                     Log.d(TAG, " Yes data in database.");
                     while (c.moveToNext()) {
                         Question q = Question.fromCursor(c);
-                        Log.d(TAG, " " + q.toString());
+                        //Log.d(TAG, " count: " + q.toString());
                     }
                     c.close();
                 }
             }
         });
+        Log.d(TAG, "[checkDisk] unsubscribe");
+        s.unsubscribe();
     }
 
     // get data from network and store in database
@@ -95,7 +121,7 @@ public class ActivityData2Sql extends AppCompatActivity {
                             // start at 1 to avoid issues
                             for (int i = 1; i < questionList.size(); ++i) {
                                 final Question q = questionList.get(i);
-                                mDB.delete(mTable, "i=" + q.getI()); // safeguard in case row exists
+                                //mDB.delete(mTable, "i=" + q.getI()); // safeguard in case row exists
                                 mDB.execute(createSQL(q));
                                 // Log.d(TAG, "exec: " + q.toString());
                             }
@@ -115,22 +141,23 @@ public class ActivityData2Sql extends AppCompatActivity {
 
                         Observable<SqlBrite.Query> members = mDB.createQuery(mTable,
                                 "SELECT * FROM " + mTable + " WHERE i>" + low + " AND i<=" + high);
-                        members.subscribe(new Action1<SqlBrite.Query>() {
+                        Subscription s1 = members.subscribe(new Action1<SqlBrite.Query>() {
                             @Override
                             public void call(SqlBrite.Query query) {
                                 Cursor c = query.run();
                                 while (c.moveToNext()) {
                                     Question q = Question.fromCursor(c);
-                                    Log.d(TAG, " " + q.toString());
+                                    //Log.d(TAG, " " + q.toString());
                                 }
                                 c.close();
                                 Log.d(TAG, "[onCompleted] limited query c.getCount() " + c.getCount());
                             }
                         });
+                        s1.unsubscribe();
 
                         // check total # of records
                         Observable<SqlBrite.Query> query = mDB.createQuery(mTable, "SELECT * FROM " + mTable);
-                        query.subscribe(new Action1<SqlBrite.Query>() {
+                        Subscription s2 = query.subscribe(new Action1<SqlBrite.Query>() {
                             @Override
                             public void call(SqlBrite.Query query) {
                                 Cursor c = query.run();
@@ -139,6 +166,7 @@ public class ActivityData2Sql extends AppCompatActivity {
 
                             }
                         });
+                        s2.unsubscribe();
                     }
 
                     @Override
