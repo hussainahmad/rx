@@ -33,10 +33,9 @@ dependencies {
     compile 'com.squareup.sqlbrite:sqlbrite:0.6.2'  // https://github.com/square/sqlbrite
     compile 'com.squareup.okhttp3:okhttp:3.2.0' // https://github.com/square/okhttp
     compile 'com.squareup.picasso:picasso:2.5.2'    // https://github.com/square/picasso
-
     // rx: because RxAndroid releases are few and far between, it is recommended you also
     // explicitly depend on RxJava's latest version for bug fixes and new features.
-    compile 'io.reactivex:rxandroid:1.1.0'
+    compile 'io.reactivex:rxandroid:1.1.0'         // https://github.com/ReactiveX/RxAndroid
     compile 'io.reactivex:rxjava:1.1.0'
 
     // retrofit
